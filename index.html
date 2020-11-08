@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My first Vue app</title>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+    <div id="app">       
+        <h1>Contacts: </h1>
+        
+        <div>
+            <input v-model="newName" placeholder="Name">
+            <button v-on:click="addContact"> Add Contact </button>
+        </div>
+
+        <br>
+
+        <div v-for="person,i in contacts">
+            <p> {{ i + 1 }}. {{ person.name }} 
+                <button v-on:click="editContact = person._id">Edit Contact</button>
+                <button v-on:click="deleteContact(person._id, i)"> Delete Contact </button>
+            </p>
+            
+
+            <div v-if="editContact === person._id">
+                <input v-model="updatedName" placeholder="New Name">
+                <button v-on:click="updateContact(person._id, i)"> Update Contact </button>
+            </div>
+            
+            <!-- <p> {{ person._id }} </p> -->
+            
+        </div>
+
+        <br>
+
+        
+        
+    </div>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                contacts:[],
+                newName: "",
+                updatedName: "",
+                editContact: ""
+            },
+            methods: {
+                addContact() {
+                    axios
+                        .post('https://zca0xb1s61.execute-api.ap-southeast-1.amazonaws.com/dev/contacts', {
+                            name: this.newName
+                        })
+                        .then(response => (this.contacts.push(response.data)))
+                        .catch(error => console.log(error))
+                    this.newName = "";
+                },
+                deleteContact(id, i) {
+                    axios
+                        .delete('https://zca0xb1s61.execute-api.ap-southeast-1.amazonaws.com/dev/contacts/' + id)
+                        .then(() => {
+                            this.contacts.splice(i, 1);
+                        })
+                        .catch(error => console.log(error))
+
+                },
+                updateContact(id, i) {
+                    axios
+                        .put('https://zca0xb1s61.execute-api.ap-southeast-1.amazonaws.com/dev/contacts/' + id, {
+                            name: this.updatedName
+                        })
+                        .then(() => {
+                            this.contacts.splice(i, 1, this.updatedName);
+                        })
+                        .catch(error => console.log(error))
+                    
+                }
+            },
+            mounted() {
+                axios
+                    .get('https://zca0xb1s61.execute-api.ap-southeast-1.amazonaws.com/dev/contacts')
+                    .then(response => (this.contacts = response.data))
+            }
+        })
+    </script>
+</body>
+
+</html>
